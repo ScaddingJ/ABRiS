@@ -26,7 +26,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import za.co.absa.abris.avro.parsing.utils.AvroSchemaUtils
 import za.co.absa.abris.examples.data.generation.TestSchemas
 
-class ExceptionHandlerSpec extends AnyFlatSpec {
+class EmptyExceptionHandlerSpec extends AnyFlatSpec {
 
   private val spark = SparkSession
     .builder()
@@ -37,15 +37,6 @@ class ExceptionHandlerSpec extends AnyFlatSpec {
     .getOrCreate()
 
   it should "receive empty dataframe row back" in {
-    // provided
-    val providedDefaultRecord = NativeSimpleOuter.newBuilder()
-      .setName("name")
-      .setNested(Nested.newBuilder()
-        .setInt$(1)
-        .setLong$(1)
-        .build())
-      .build()
-
     // expected
     val expectedNestedFieldSchema = new StructType()
       .add("int", "int")
@@ -54,16 +45,10 @@ class ExceptionHandlerSpec extends AnyFlatSpec {
       .add("name", "string")
       .add("nested", expectedNestedFieldSchema)
 
-    val expectedNestedFieldInternalRow = new SpecificInternalRow(expectedNestedFieldSchema)
-    expectedNestedFieldInternalRow.setInt(0, 1)
-    expectedNestedFieldInternalRow.setLong(1, 1L)
-
     val expectedNestedStructInternalRow = new SpecificInternalRow(expectedNestedStructSchema)
-    expectedNestedStructInternalRow.update(0, UTF8String.fromString("name"))
-    expectedNestedStructInternalRow.update(1, expectedNestedFieldInternalRow)
 
     //actual
-    val deserializationExceptionHandler = new SpecificRecordExceptionHandler(providedDefaultRecord)
+    val deserializationExceptionHandler = new EmptyExceptionHandler
     val schema = AvroSchemaUtils.parse(TestSchemas.NATIVE_SIMPLE_OUTER_SCHEMA)
     val dataType: DataType = SchemaConverters.toSqlType(schema).dataType
 
