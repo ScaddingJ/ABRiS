@@ -16,7 +16,7 @@
 
 package za.co.absa.abris.avro.sql
 
-import all_types.test.NativeComplete
+import all_types.test.{NativeComplete, NativeCompleteOptional}
 import org.apache.spark.SparkException
 import org.apache.spark.SparkConf
 import org.apache.spark.serializer.{JavaSerializer, KryoSerializer}
@@ -166,13 +166,15 @@ class AvroDataToCatalystSpec extends AnyFlatSpec with Matchers with BeforeAndAft
     val dummyUrl = "dummyUrl"
     val fromConfig = AbrisConfig
       .fromConfluentAvro
+//  TODO Option1: use the schema with all optional fields to get rid of the NPE
+//      .provideReaderSchema(NativeCompleteOptional.SCHEMA$.toString())
       .provideReaderSchema(NativeComplete.SCHEMA$.toString())
       .usingSchemaRegistry(dummyUrl)
       .withExceptionHandler(new EmptyExceptionHandler)
 
     val actualDataFrame = providedDataFrame
       .select(from_avro(col("bytes"), fromConfig).as("actual"))
-// TODO uncomment the line below to get rid of the NPE
+// TODO Option2: uncomment the line below to get rid of the NPE
 //      .select(col("actual.*"))
 
     actualDataFrame.show(false)
